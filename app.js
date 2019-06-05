@@ -1,10 +1,15 @@
+//  {name: 'Steak', calories: 599 id:0}, {name: 'Fish', calories: 400, id:1}
+
 // Item Controller where data is handled
 const ItemCtrl = (function() {
   function Item(name, calories, id) {
     (this.name = name), (this.calories = calories), (this.id = id);
   }
   let data = {
-    items: [],
+    items: [
+      { name: "Steak", calories: 599, id: 0 },
+      { name: "Fish", calories: 400, id: 1 }
+    ],
     currentItem: null,
     totalCalories: 0
   };
@@ -32,6 +37,7 @@ const ItemCtrl = (function() {
 const UICtrl = (function() {
   const UISelectors = {
     addBtn: ".add-btn",
+    updateBtn: ".update-btn",
     deleteBtn: ".delete-btn",
     backBtn: ".back-btn",
     itemNameInput: "#item-name",
@@ -39,6 +45,11 @@ const UICtrl = (function() {
     itemList: "#item-list"
   };
   return {
+    populateList: function(items) {
+      items.forEach(item => {
+        UICtrl.addItemToList(item);
+      });
+    },
     addItemToList: function(item) {
       let li = document.createElement("li");
       li.className = "collection-item";
@@ -52,6 +63,18 @@ const UICtrl = (function() {
         .querySelector(UISelectors.itemList)
         .insertAdjacentElement("beforeend", li);
     },
+    updateItem: function(targetItem, items) {
+      let itemIDArr = targetItem.id.split("-");
+      let ID = parseInt(itemIDArr[1]);
+      console.log(ID);
+      console.log(items);
+      let itemToUpdate = items.filter(item => {
+        if (item.id === ID) {
+          return item;
+        }
+      });
+      //   CONTINUE HERE...YOU HAVE GRABBED THE TARGETED ITEM SO FAR...
+    },
     clearFormInput: function() {
       document.querySelector(UISelectors.itemNameInput).value = "";
       document.querySelector(UISelectors.itemCaloriesInput).value = "";
@@ -61,6 +84,12 @@ const UICtrl = (function() {
     },
     showList: function() {
       document.querySelector(UISelectors.itemList).style.display = "block";
+    },
+    hideEditState: function() {
+      document.querySelector(UISelectors.updateBtn).style.display = "none";
+      document.querySelector(UISelectors.deleteBtn).style.display = "none";
+      document.querySelector(UISelectors.backBtn).style.display = "none";
+      document.querySelector(UISelectors.addBtn).style.display = "inline";
     },
     getSelectors: function() {
       return UISelectors;
@@ -72,10 +101,16 @@ const UICtrl = (function() {
 const App = (function(ItemCtrl, UICtrl) {
   const UISelectors = UICtrl.getSelectors();
   function loadEventListeners() {
+    // Add btn event listener
     document
       .querySelector(UISelectors.addBtn)
       .addEventListener("click", addItemSubmit);
+    // Edit btn event listener
+    document
+      .querySelector(UISelectors.itemList)
+      .addEventListener("click", editItemClick);
   }
+  // Add btn func
   function addItemSubmit(e) {
     UICtrl.showList();
     let newItem = ItemCtrl.createNewItem(
@@ -86,11 +121,25 @@ const App = (function(ItemCtrl, UICtrl) {
     UICtrl.clearFormInput();
     e.preventDefault();
   }
+  //Edit btn func
+  function editItemClick(e) {
+    if (e.target.classList.contains("edit-item")) {
+      UICtrl.updateItem(
+        e.target.parentNode.parentNode,
+        ItemCtrl.logData().items
+      );
+    }
+    e.preventDefault();
+  }
+
   return {
     init: function() {
       if (ItemCtrl.logData().items.length < 1) {
         UICtrl.hideList();
+      } else {
+        UICtrl.populateList(ItemCtrl.logData().items);
       }
+      UICtrl.hideEditState();
       loadEventListeners();
     }
   };
