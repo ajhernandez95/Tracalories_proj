@@ -7,7 +7,7 @@ const ItemCtrl = (function() {
   }
   let data = {
     items: [
-      { name: 'Steak', calories: 599, id: 0 },
+      { name: 'Steak', calories: 600, id: 0 },
       { name: 'Fish', calories: 400, id: 1 }
     ],
     currentItem: null,
@@ -48,8 +48,19 @@ const ItemCtrl = (function() {
 
       return calories;
     },
+    deleteItem: function(id) {
+      data.items.forEach((item, index) => {
+        if (id === item.id) {
+          data.items.splice(index, 1);
+        }
+      });
+    },
+    clearItems: function() {
+      data.items = [];
+    },
     setCurrentItem: function(item) {
       data.currentItem = item;
+      return item;
     },
     logData: function() {
       return data;
@@ -110,6 +121,10 @@ const UICtrl = (function() {
       UICtrl.showEditState();
       return itemToUpdate;
     },
+    removeItem: function(id) {
+      let item = document.querySelector(`#item-${id}`);
+      item.remove();
+    },
     clearFormInput: function() {
       document.querySelector(UISelectors.itemNameInput).value = '';
       document.querySelector(UISelectors.itemCaloriesInput).value = '';
@@ -161,6 +176,14 @@ const App = (function(ItemCtrl, UICtrl) {
     document
       .querySelector(UISelectors.updateBtn)
       .addEventListener('click', editItemSubmit);
+    // Back btn event listener
+    document
+      .querySelector(UISelectors.backBtn)
+      .addEventListener('click', backBtnFunc);
+    // Delete btn event listner
+    document
+      .querySelector(UISelectors.deleteBtn)
+      .addEventListener('click', deleteItem);
     // Clear all btn event listener
     document
       .querySelector(UISelectors.clearAll)
@@ -208,8 +231,31 @@ const App = (function(ItemCtrl, UICtrl) {
     e.preventDefault();
   }
 
+  // Back btn func
+  function backBtnFunc(e) {
+    UICtrl.hideEditState();
+    UICtrl.clearFormInput();
+
+    e.preventDefault();
+  }
+
+  // Delete item func
+  const deleteItem = function(e) {
+    const id = ItemCtrl.logData().currentItem.id;
+    ItemCtrl.deleteItem(id);
+    UICtrl.removeItem(id);
+    UICtrl.clearFormInput();
+    UICtrl.hideEditState();
+
+    e.preventDefault();
+  };
+
   // Clear all func
   function clearAll(e) {
+    ItemCtrl.clearItems();
+
+    UICtrl.clearFormInput();
+    UICtrl.hideEditState();
     e.preventDefault();
   }
 
